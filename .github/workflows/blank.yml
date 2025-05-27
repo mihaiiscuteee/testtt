@@ -3,11 +3,15 @@ name: Auto Commit Every 12 Hours
 on:
   schedule:
     - cron: "0 */12 * * *"  # Toutes les 12 heures
-  workflow_dispatch:  # Permet un déclenchement manuel
+  workflow_dispatch:  # Déclenchement manuel
+  push:               # Ajout pour déclencher un run sur chaque commit poussé
+    branches:
+      - main          # Remplace par ta branche si ce n'est pas "main"
 
 jobs:
   update_repo:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -21,9 +25,9 @@ jobs:
         run: |
           echo "Mise à jour unique : $(date +'%Y-%m-%d %H:%M:%S')" > update_$(date +'%Y%m%d%H%M%S').txt
           git add .
-          git commit -m "Auto-update: $(date +'%Y-%m-%d %H:%M:%S')"
+          git commit -m "Auto-update: $(date +'%Y-%m-%d %H:%M:%S')" || echo "Rien à valider"
 
       - name: Push Changes
         run: |
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git push
+          git push || echo "Pas de changement à pousser"
